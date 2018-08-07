@@ -2,6 +2,7 @@
 
 
 #1.0 Initial
+
 set -o errexit
 set -o nounset
 #set -o xtrace
