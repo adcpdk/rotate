@@ -1,0 +1,46 @@
+#! /bin/bash
+
+
+#1.0 Initial
+set -o errexit
+set -o nounset
+#set -o xtrace
+
+DF="/bin/df"
+CUR_DIR="/srv/A"
+CUR_FILE="a.txt"
+REM_DIR="/srv/B"
+MAX_SIZE="3200"
+
+if [ ! -d $CUR_DIR ] || [ ! -d $REM_DIR ]; then
+	echo "At least one of the directories does not exist"
+	logger -i -p cron.info "At least one of the irectories does not exist"
+	exit 0
+fi
+if [ ! -f $CUR_DIR/$CUR_FILE ]; then
+        echo "$CUR_DIR/$CUR_FILE does not exist"
+        logger -i -p cron.info -t $0 "$CUR_DIR/$CUR_FILE does not exist" 
+        exit 0
+fi
+
+#test -d /this || echo "This Directory does not exis"
+#if [[ $(test -d $CUR_DIR) && $(test -d $REM_DIR) ]]
+#then 
+
+
+#echo $CUR_DIR
+
+if [ $(du $CUR_DIR | cut -f1) -gt $MAX_SIZE ]; then 
+	if [ $($DF $REM_DIR | cut -d " " -f5) -gt $(du $CUR_DIR/$CUR_FILE | cut -f1) ]; then 
+		echo "$CUR_DIR is more then $MAX_SIZE and $REM_DIR directory has some space"
+		mv $CUR_DIR/$CUR_FILE $REM_DIR
+		test -f $REM_DIR/$CUR_FILE
+		logger -i -p cron.info -t $0 "Moved $CUR_DIR/$CUR_FILE to $REM_DIR"
+	else
+		logger -i -p cron.info -t $0 "ERROR: $REM_DIR has no sufficient space"
+		exit 0
+	fi	
+fi
+#else 
+#	echo "Warning: Check it both directoris exist!"
+#fi
